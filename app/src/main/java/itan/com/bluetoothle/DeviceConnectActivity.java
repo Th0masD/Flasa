@@ -1,5 +1,6 @@
 package itan.com.bluetoothle;
 
+import android.Manifest;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -8,22 +9,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.IBinder;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import static itan.com.bluetoothle.Constants.BODY_SENSOR_LOCATION_CHARACTERISTIC_UUID;
 import static itan.com.bluetoothle.Constants.HEART_RATE_SERVICE_UUID;
 import static itan.com.bluetoothle.Constants.SERVER_MSG_FIRST_STATE;
 import static itan.com.bluetoothle.Constants.SERVER_MSG_SECOND_STATE;
 
+import android.net.Uri;
 
 
 public class DeviceConnectActivity extends BluetoothActivity implements View.OnClickListener {
@@ -43,9 +50,14 @@ public class DeviceConnectActivity extends BluetoothActivity implements View.OnC
 
     private TextView mConnectionStatus;
     private TextView mConnectedDeviceName;
-    private ImageView mServerCharacteristic;
-    private Button mRequestReadCharacteristic;
 
+    private EditText mInputText;
+    //tomas
+    public String editTextValue;
+    private TextView mMobilCislo;
+    private Button mVypniOchranu;
+    private Button mZapniOchranu;
+    private Button mZapisCharacteristiku;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,10 +75,19 @@ public class DeviceConnectActivity extends BluetoothActivity implements View.OnC
 
         mConnectionStatus = (TextView) findViewById(R.id.connection_status);
         mConnectedDeviceName = (TextView) findViewById(R.id.connected_device_name);
-        mServerCharacteristic = (ImageView) findViewById(R.id.server_characteristic_value);
-        mRequestReadCharacteristic = (Button) findViewById(R.id.request_read_characteristic);
-        mRequestReadCharacteristic.setOnClickListener(this);
 
+
+        //tomas
+        mZapisCharacteristiku = (Button) findViewById(R.id.zapis_characteristiku);
+        mZapisCharacteristiku.setOnClickListener(this);
+        mInputText = (EditText) findViewById(R.id.input_text);
+        mMobilCislo = (TextView) findViewById(R.id.mobil_cislo);
+        mVypniOchranu = (Button) findViewById(R.id.vypni_ochranu);
+        mVypniOchranu.setOnClickListener(this);
+        mZapniOchranu = (Button) findViewById(R.id.zapni_ochranu);
+        mZapniOchranu.setOnClickListener(this);
+
+        //     mZavolaCislo.setOnClickListener(this);
 
         if (TextUtils.isEmpty(mDeviceName)) {
             mConnectedDeviceName.setText("");
@@ -84,6 +105,8 @@ public class DeviceConnectActivity extends BluetoothActivity implements View.OnC
         updateInputFromServer(SERVER_MSG_SECOND_STATE);
         */
     }
+
+    //tomas
 
 
     @Override
@@ -121,23 +144,45 @@ public class DeviceConnectActivity extends BluetoothActivity implements View.OnC
     @Override
     public void onClick(View view) {
 
+        mInputText.getText().toString();
+        editTextValue = mInputText.getText().toString();
+
         switch (view.getId()) {
 
-            case R.id.request_read_characteristic:
-                requestReadCharacteristic();
+            case R.id.zapis_characteristiku:;
+
+                mInputText.getText().toString();
+                editTextValue = mInputText.getText().toString();
+                //      String msg = "CHUJ  " +  editTextValue;
+                //      Log.v(MainActivity.TAG, msg);
+                //      showMsgText(msg);
+                //    zapisCharacteristiku();
                 break;
 
+                case R.id.vypni_ochranu:;
+
+                zapisCharacteristiku("OF:"+ editTextValue);
+                break;
+
+            case R.id.zapni_ochranu:;
+
+                zapisCharacteristiku("ON:"+ editTextValue);
+                break;
         }
     }
+
+
 
 
     /*
     request from the Server the value of the Characteristic.
     this request is asynchronous.
      */
-    private void requestReadCharacteristic() {
+    public void zapisCharacteristiku(String prikaz) {
         if (mBluetoothLeService != null && mCharacteristic != null) {
-            mBluetoothLeService.readCharacteristic(mCharacteristic);
+         //   mBluetoothLeService.readCharacteristic(mCharacteristic);
+        //tomas
+            mBluetoothLeService.writeCharacteristic1(mCharacteristic, prikaz);
         } else {
             showMsgText(R.string.error_unknown);
         }
@@ -189,12 +234,12 @@ public class DeviceConnectActivity extends BluetoothActivity implements View.OnC
 
                 case CentralService.ACTION_GATT_CONNECTED:
                     updateConnectionState(R.string.connected);
-                    mRequestReadCharacteristic.setEnabled(true);
+                    //mRequestReadCharacteristic.setEnabled(true);
                     break;
 
                 case CentralService.ACTION_GATT_DISCONNECTED:
                     updateConnectionState(R.string.disconnected);
-                    mRequestReadCharacteristic.setEnabled(false);
+                  //  mRequestReadCharacteristic.setEnabled(false);
                     break;
 
 
@@ -320,7 +365,7 @@ public class DeviceConnectActivity extends BluetoothActivity implements View.OnC
 
         }
 
-        mServerCharacteristic.setBackgroundColor(Color.parseColor(color));
+
         showMsgText(String.format(getString(R.string.characteristic_value_received), msg));
     }
 
