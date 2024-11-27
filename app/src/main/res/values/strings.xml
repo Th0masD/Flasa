@@ -5,7 +5,7 @@
     <string name="button_role_central">Central/Client</string>
     <string name="scan">scan</string>
     <string name="advertise_device">Advertise Device</string>
-    <string name="notify">Notify Client</string>
+    <string name="notify">Nacitaj cislo</string>
     <string name="peripheral_screen">Peripheral/Server screen</string>
     <string name="central_screen">Central/Client screen</string>
     <string name="bt_not_supported">Bluetooth is not supported on this device.</string>
@@ -27,6 +27,6 @@
     <string name="server_characteristic_label">Server Characteristic value</string>
     <string name="status_error_when_connecting">An error occurred when connecting to a device. Error Code</string>
     <string name="choose_color">Choose color</string>
-    <string name="request_read_characteristic">Request Characteristic</string>
+    <string name="request_read_characteristic">Odosli cislo</string>
     <string name="characteristic_value_received">Characteristic value received: %1$d</string>
 </resources>

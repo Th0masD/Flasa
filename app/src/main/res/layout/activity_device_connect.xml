@@ -53,15 +53,14 @@
         android:layout_marginTop="32dp"/>
 
 
-    <ImageView
-        android:id="@+id/server_characteristic_value"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="16dp"/>
-
+    <TextView
+        android:id="@+id/mobil_cislo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="cislo" />
 
     <Button
-        android:id="@+id/request_read_characteristic"
+        android:id="@+id/zapis_characteristiku"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@android:color/white"
@@ -71,6 +70,30 @@
         android:background="#BDBDBD"
         android:padding="8dp"
         android:elevation="4dp"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputEditText
+        android:id="@+id/input_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="hint" />
+
+    <Button
+        android:id="@+id/zapni_ochranu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ZAPNI" />
+
+    <Button
+        android:id="@+id/vypni_ochranu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="VYPNI" />
 
 
 </LinearLayout>

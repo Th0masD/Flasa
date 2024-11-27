@@ -1,5 +1,6 @@
 package itan.com.bluetoothle;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -10,20 +11,29 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+
+
+import android.media.AudioManager;
+import android.media.ToneGenerator;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RadioGroup;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
 import static itan.com.bluetoothle.Constants.BODY_SENSOR_LOCATION_CHARACTERISTIC_UUID;
 import static itan.com.bluetoothle.Constants.HEART_RATE_SERVICE_UUID;
-import static itan.com.bluetoothle.Constants.SERVER_MSG_FIRST_STATE;
-import static itan.com.bluetoothle.Constants.SERVER_MSG_SECOND_STATE;
 
 
 /**
@@ -35,10 +45,10 @@ import static itan.com.bluetoothle.Constants.SERVER_MSG_SECOND_STATE;
     4. notify [peripheral]
     5. receive [central]
  */
-public class PeripheralRoleActivity extends BluetoothActivity implements View.OnClickListener {
+public class PeripheralRoleActivity extends BluetoothActivity implements View.OnClickListener, SensorEventListener {
 
     private BluetoothGattService mSampleService;
-    private BluetoothGattCharacteristic mSampleCharacteristic;
+    public BluetoothGattCharacteristic mSampleCharacteristic;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothGattServer mGattServer;
@@ -46,30 +56,47 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
 
     private Button mNotifyButton;
     private Switch mEnableAdvertisementSwitch;
-    private RadioGroup mCharacteristicValueSwitch;
+    //tomas
+    public TextView mMobilCislo1;
+    private TextView xValue;
+    private Button mZavolaCislo1;
+    public String mobilcislo;
+    public String mPrikaz;
+    public String mStav;
+    public boolean ZapVyp;
 
+    float zmenaX;
 
+    private SensorManager sensorManager;
+    Sensor acclerometer;
+    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mNotifyButton = (Button) findViewById(R.id.button_notify);
+
         mEnableAdvertisementSwitch = (Switch) findViewById(R.id.advertise_switch);
-        mCharacteristicValueSwitch = (RadioGroup) findViewById(R.id.color_switch);
+
+        mMobilCislo1 = (TextView) findViewById(R.id.mobil_cislo_1);
+        xValue = (TextView) findViewById(R.id.xValue);
 
 
-        mNotifyButton.setOnClickListener(this);
         mEnableAdvertisementSwitch.setOnClickListener(this);
-        mCharacteristicValueSwitch.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                setCharacteristic(checkedId);
-            }
-        });
+        //tomas
+        mZavolaCislo1 = (Button) findViewById(R.id.zavola_cislo1);
+        mZavolaCislo1.setOnClickListener(this);
+
+
 
         setGattServer();
         setBluetoothService();
+
+        //tomas
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        acclerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(PeripheralRoleActivity.this, acclerometer, SensorManager.SENSOR_DELAY_NORMAL);
+
     }
 
     @Override
@@ -80,6 +107,9 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
 
     @Override
     public void onClick(View view) {
+
+
+        int format = -1;
 
         switch(view.getId()) {
 
@@ -92,13 +122,60 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
                 }
                 break;
 
-
-            case R.id.button_notify:
-                notifyCharacteristicChanged();
+            case R.id.zavola_cislo1:
+                zavolajCislo();
                 break;
 
+
+        }
+
+        }
+
+    //tomas
+    private void zavolajCislo() {
+        // Getting instance of Intent with action as ACTION_CALL
+        int requestCode = 0;
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CALL_PHONE}, requestCode);
+        return;
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == requestCode)
+        {
+            if(grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                Intent callIntent = new Intent(Intent.ACTION_CALL);
+                callIntent.setData(Uri.parse("tel:" + mobilcislo));
+                startActivity(callIntent);
+            }
         }
     }
+
+
+    //tomas
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        xValue.setText("xValue: " +  String.format("%.2f", sensorEvent.values[0]));
+
+        zmenaX = sensorEvent.values[0];
+
+        if ((zmenaX > 1 || zmenaX < -1) && ZapVyp)
+        {
+      //      ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+            toneG.startTone(ToneGenerator.TONE_CDMA_CONFIRM, 600);
+            sensorManager.unregisterListener(PeripheralRoleActivity.this);
+            zavolajCislo();
+        }
+    }
+
+
 
 
     @Override
@@ -146,8 +223,8 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
         we need to grant to the Client permission to read (for when the user clicks the "Request Characteristic" button).
         no need for notify permission as this is an action the Server initiate.
          */
-        mSampleCharacteristic = new BluetoothGattCharacteristic(BODY_SENSOR_LOCATION_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY | BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-        setCharacteristic(); // set initial state
+        mSampleCharacteristic = new BluetoothGattCharacteristic(BODY_SENSOR_LOCATION_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY | BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE);
+
 
         // add the Characteristic to the Service
         mSampleService.addCharacteristic(mSampleCharacteristic);
@@ -159,9 +236,7 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
     }
 
 
-    private void setCharacteristic() {
-        setCharacteristic(R.id.color_option_1);
-    }
+
 
     /*
     update the value of Characteristic.
@@ -176,8 +251,6 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
         /*
         done each time the user changes a value of a Characteristic
          */
-        int value = checkedId == R.id.color_option_1 ? SERVER_MSG_FIRST_STATE : SERVER_MSG_SECOND_STATE;
-        mSampleCharacteristic.setValue(getValue(value));
     }
 
     private byte[] getValue(int value) {
@@ -277,13 +350,54 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
 
             super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
 
-            Log.v(MainActivity.TAG, "Characteristic Write request: " + Arrays.toString(value));
+      //      String msg = "Characteristic Write request: " + Arrays.toString(value);
+      //      Log.v(MainActivity.TAG, msg);
+      //      showMsgText(msg);
 
             mSampleCharacteristic.setValue(value);
 
             if (responseNeeded) {
                 mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, value);
             }
+
+            //tomas
+            mPrikaz = mSampleCharacteristic.getStringValue(0);
+            // mobilcislo = mSampleCharacteristic.getStringValue(0);
+            //mMobilCislo1.setText(mobilcislo);
+
+
+            String[] separated = mPrikaz.split(":");
+            mobilcislo = separated [1]; // this will contain "Fruit"
+            mStav = separated [0]; // this will contain " they taste good"
+
+    //        String msg2 = mStav;
+     //       Log.v(MainActivity.TAG, msg2);
+      //      showMsgText(msg2);
+
+//
+            switch (mStav) {
+                case "ON":
+                    ZapVyp = true;
+                    mMobilCislo1.setText("ZAP " + mobilcislo);
+                    toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200);
+                    //      String msg1 = mobilcislo;
+              //      Log.v(MainActivity.TAG, msg1);
+              //      showMsgText(msg1);
+                    break;
+
+                case "OF":
+                    ZapVyp = false;
+                    mMobilCislo1.setText("VYP " + mobilcislo);
+                    toneG.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE, 200);
+
+                    //    String msg2 = mobilcislo;
+                //    Log.v(MainActivity.TAG, msg2);
+                //    showMsgText(msg2);
+
+                    break;
+            }
+
+
 
         }
 
@@ -353,6 +467,7 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
 
         }
     };
+
 
 
 }

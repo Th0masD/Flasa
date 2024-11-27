@@ -123,7 +123,7 @@ public class CentralService extends Service {
                 Log.d(MainActivity.TAG, "data format UINT16.");
             } else {
                 format = BluetoothGattCharacteristic.FORMAT_UINT8;
-                Log.d(MainActivity.TAG, "data format UINT16.");
+                Log.d(MainActivity.TAG, "data format UINT8.");
             }
 
             int msg = characteristic.getIntValue(format, 0);
@@ -295,9 +295,24 @@ public class CentralService extends Service {
             Log.w(MainActivity.TAG, "BluetoothAdapter not initialized");
             return;
         }
-
         mBluetoothGatt.readCharacteristic(characteristic);
     }
+
+    //tomas
+    public void writeCharacteristic1(BluetoothGattCharacteristic characteristic, String jano) {
+
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(MainActivity.TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+      //  String msg = "CHUJ  " +  jano;
+      //  Log.w(MainActivity.TAG, msg);
+
+        characteristic.setValue(jano);
+        mBluetoothGatt.writeCharacteristic(characteristic);
+    }
+
+
 
     /**
      * Enables or disables notification on a give characteristic.
