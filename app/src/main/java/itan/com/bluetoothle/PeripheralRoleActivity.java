@@ -387,7 +387,7 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
 
                 case "OF":
                     ZapVyp = false;
-                    mMobilCislo1.setText("VYP " + mobilcislo);
+                    mMobilCislo1.setText("VYp " + mobilcislo);
                     toneG.startTone(ToneGenerator.TONE_CDMA_CALLDROP_LITE, 200);
 
                     //    String msg2 = mobilcislo;
