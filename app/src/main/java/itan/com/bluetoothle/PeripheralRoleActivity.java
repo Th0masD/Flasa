@@ -140,6 +140,7 @@ public class PeripheralRoleActivity extends BluetoothActivity implements View.On
 
     }
 
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

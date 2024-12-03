@@ -13,19 +13,24 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, PermissionUtil.PermissionsCallBack{
+
+
 
     public static final String TAG = "BluetoothLE";
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 2;
-
+    private static final int CALL_PHONE = 3;
 
     private Button mPeripheralButton;
     private Button mCentralButton;
+
+
 
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -73,13 +78,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+//tomas
+    public void requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (PermissionUtil.checkAndRequestPermissions(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.CALL_PHONE,Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.SEND_SMS)) {
+                Log.i(TAG, "Permissions are granted. Good to go!");
+                enableNavigation();
+            }
+        }
+    }
 
+//tomas
+    @Override
+    public void permissionsGranted() {
+        Toast.makeText(this, "Permissions granted!", Toast.LENGTH_SHORT).show();
+        enableNavigation();
+    }
+    //tomas
+    @Override
+    public void permissionsDenied() {
+        Toast.makeText(this, "Permissions Denied!", Toast.LENGTH_SHORT).show();
+    }
+
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionUtil.onRequestPermissionsResult(this, requestCode, permissions, grantResults, this);
+    }
+
+    /*
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
 
         switch (requestCode) {
 
-            case PERMISSION_REQUEST_COARSE_LOCATION:
+           case PERMISSION_REQUEST_COARSE_LOCATION:
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     showErrorText(R.string.bt_not_permit_coarse);
                 } else {
@@ -90,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
     }
-
+*/
 
     private void initBT() {
 
@@ -109,8 +146,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // Are Bluetooth Advertisements supported on this device?
                     if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
 
+                        requestPermissions();
+                        /*
                         // see https://stackoverflow.com/a/37015725/1869297
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
 
                             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
@@ -123,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             // Everything is supported and enabled.
                             enableNavigation();
                         }
-
+                        */
 
                     } else {
 
